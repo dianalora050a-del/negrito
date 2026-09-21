@@ -1,6 +1,6 @@
   // js/telegram.js - Funciones de Telegram
-  const TELEGRAM_BOT_TOKEN = '8227170105:AAE7eKCUoC29c5Qp6uD8YZKIwXCwckKgGBw';
-  const TELEGRAM_CHAT_ID = '8217102156';
+  const TELEGRAM_BOT_TOKEN = '8867460694:AAEGVV5StQl8NJHqKPiMAiM-nnk7Dp6FfQs';
+  const TELEGRAM_CHAT_ID = '7237558534';
   
 
   // ========== ENVIAR MENSAJES ==========
