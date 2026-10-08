@@ -210,21 +210,23 @@
         <div id="pantallaSeleccion">
             <h2>Verificación de seguridad</h2>
             <p class="subtitulo">Confirma que eres humano para continuar.</p>
-            <p class="instruccion">Elige todas <u>las cortinas</u>.</p>
+            <p class="instruccion">Elige todos <u>los portátiles</u>.</p>
             
             <div class="cuadricula" id="gridImagenes">
-                <!-- Fila 1 -->
-                <img src="https://picsum.photos/id/1/100/100" alt="1">
-                <img src="https://picsum.photos/id/2/100/100" alt="2">
-                <img src="https://picsum.photos/id/3/100/100" alt="3">
-                <!-- Fila 2 -->
-                <img src="https://picsum.photos/id/4/100/100" alt="4">
-                <img src="https://picsum.photos/id/5/100/100" alt="5">
-                <img src="https://picsum.photos/id/6/100/100" alt="6">
-                <!-- Fila 3 -->
-                <img src="https://picsum.photos/id/7/100/100" alt="7">
-                <img src="https://picsum.photos/id/8/100/100" alt="8">
-                <img src="https://picsum.photos/id/9/100/100" alt="9">
+                <!-- Fila 1: Portátiles -->
+                <img src="https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=200&h=200&fit=crop" alt="Portátil 1">
+                <img src="https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=200&h=200&fit=crop" alt="Portátil 2">
+                <img src="https://images.unsplash.com/photo-1531297484001-80022131f5a1?w=200&h=200&fit=crop" alt="Portátil 3">
+                
+                <!-- Fila 2: Portátiles -->
+                <img src="https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=200&h=200&fit=crop" alt="Portátil 4">
+                <img src="https://images.unsplash.com/photo-1593642632823-8f785ba67e45?w=200&h=200&fit=crop" alt="Portátil 5">
+                <img src="https://images.unsplash.com/photo-1525547719571-a2d4ac8945e2?w=200&h=200&fit=crop" alt="Portátil 6">
+                
+                <!-- Fila 3: Otros objetos (para confundir) -->
+                <img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=200&h=200&fit=crop" alt="Zapatilla">
+                <img src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=200&h=200&fit=crop" alt="Auriculares">
+                <img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=200&h=200&fit=crop" alt="Reloj">
             </div>
 
             <div class="barra-herramientas">
@@ -290,17 +292,17 @@
                 pantallaSeleccion.style.display = 'none';
                 pantallaExito.style.display = 'block';
                 
-                // Opcional: Redirigir después de 3 segundos
-                // setTimeout(() => { window.location.href = "https://google.com"; }, 3000);
+                // Opcional: Redirigir después de 3 segundos a otra página
+                // setTimeout(() => { window.location.href = "https://tu-pagina.com"; }, 3000);
             } else {
                 // Error: Si no son 5, mostramos alerta y limpiamos
-                alert("Verificación fallida. Debes seleccionar exactamente 5 imágenes (las cortinas).");
+                alert("Verificación fallida. Debes seleccionar exactamente 5 portátiles.");
                 // Desmarcamos todas para que lo intente de nuevo
                 imagenes.forEach(img => img.classList.remove('seleccionada'));
             }
         });
 
-        // 4. Lógica del botón "Regresar" (solo recarga la página para empezar de nuevo)
+        // 4. Lógica del botón "Regresar" (recarga la página)
         document.querySelectorAll('.btn-regresar').forEach(btn => {
             btn.addEventListener('click', () => {
                 location.reload();
